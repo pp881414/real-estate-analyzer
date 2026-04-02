@@ -531,6 +531,7 @@ def run_alert_and_return() -> str:
     if summary_nohits:
         lines.append(f"⭕ 無符合：{'、'.join(summary_nohits)}")
     all_messages = detail_messages + ["\n".join(lines)]
+    sys.stdout = sys.__stdout__
     return "\n\n".join(all_messages)
 if __name__ == "__main__":
     main()
