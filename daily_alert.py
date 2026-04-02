@@ -340,7 +340,7 @@ def send_line(message: str) -> bool:
                 "Content-Type":  "application/json",
             },
             json={"to": LINE_USER_ID, "messages": [{"type": "text", "text": message}]},
-            timeout=10,
+            timeout=180,
         )
         if res.status_code == 200:
             return True
