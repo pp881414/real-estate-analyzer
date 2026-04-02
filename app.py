@@ -752,7 +752,7 @@ with st.expander("🔔 每日 LINE 警報設定", expanded=False):
                 st.success("✅ 設定已儲存！")
 
     with col_push:
-        st.image("https://qr-official.line.me/sid/L/761zjrzc.png", width=160, caption="掃碼加入官方帳號")
+        st.image("https://qr-official.line.me/sid/L/761zjrzc.png", width=120, caption="掃碼加入官方帳號")
         RENDER_URL = "https://real-estate-analyzer-72i6.onrender.com"
         nickname = st.text_input("輸入你的暱稱", placeholder="請輸入綁定時設定的暱稱")
         if st.button("📲  推播給我", key="btn_push_line", use_container_width=True, type="primary"):
