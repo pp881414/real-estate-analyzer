@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: house-webhook
+    runtime: python
+    buildCommand: pip install flask requests gunicorn
+    startCommand: gunicorn webhook_server:app
+    envVars:
+      - key: LINE_CHANNEL_TOKEN
+        sync: false
