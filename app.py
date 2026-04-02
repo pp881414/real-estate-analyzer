@@ -748,7 +748,7 @@ with st.expander("🔔 每日 LINE 警報設定", expanded=False):
             "house_types": sel_types,
         }
 
-    col_save, col_push = st.columns([2, 3])
+    col_save, col_push = st.columns(2)
     with col_save:
         if st.button("💾  儲存設定", key="btn_save_alert", use_container_width=True):
             if not sel_districts:
