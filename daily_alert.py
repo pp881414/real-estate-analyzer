@@ -21,6 +21,7 @@ import json
 import urllib3
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 from datetime import datetime
+from zoneinfo import ZoneInfo
 
 # ── 自動載入 .env（若存在）──
 _env_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '.env')
@@ -354,7 +355,7 @@ def send_line(message: str) -> bool:
 
 
 def format_line_message(cp_df: pd.DataFrame, district_name: str, threshold) -> str:
-    now = datetime.now().strftime("%m/%d %H:%M")
+    now = datetime.now(tz=ZoneInfo('Asia/Taipei')).strftime("%m/%d %H:%M")
     t_low, t_high = (
         (threshold[0], threshold[1])
         if isinstance(threshold, (list, tuple))
@@ -451,7 +452,7 @@ def main():
             print("[ERR] LINE 通知發送失敗")
 
     # ── 改善4：發送整體執行摘要（只有一則） ──
-    now = datetime.now().strftime("%m/%d %H:%M")
+    now = datetime.now(tz=ZoneInfo('Asia/Taipei')).strftime("%m/%d %H:%M")
     t_low, t_high = (
         (threshold[0], threshold[1])
         if isinstance(threshold, (list, tuple))
