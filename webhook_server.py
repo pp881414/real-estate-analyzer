@@ -66,11 +66,12 @@ def reply_message(reply_token, text):
     )
 
 def push_message(user_id, text):
-    requests.post(
+    resp = requests.post(
         "https://api.line.me/v2/bot/message/push",
         headers={"Authorization": f"Bearer {LINE_CHANNEL_TOKEN}", "Content-Type": "application/json"},
         json={"to": user_id, "messages": [{"type": "text", "text": text}]}
     )
+    return resp.status_code
 
 @app.route("/webhook", methods=["POST"])
 def webhook():
@@ -109,8 +110,8 @@ def push():
     user_id = get_user(nickname)
     if not user_id:
         return jsonify({"status": "error", "message": "找不到此暱稱"}), 404
-    push_message(user_id, message)
-    return jsonify({"status": "ok", "sent_to": nickname})
+    resp = push_message(user_id, message)
+    return jsonify({"status": "ok", "sent_to": nickname, "user_id": user_id, "line_status": resp})
 
 @app.route("/check/<nickname>", methods=["GET"])
 def check(nickname):
