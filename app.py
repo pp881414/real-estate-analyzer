@@ -775,14 +775,14 @@ with st.expander("🔔 每日 LINE 警報設定", expanded=False):
                         # 確認暱稱是否存在
                         check = requests.get(f"{RENDER_URL}/check/{nickname.strip()}", timeout=10)
                         if check.json().get("exists"):
-                            import daily_alert
-                            try:
-                                    message = daily_alert.run_alert_and_return()
-                            except Exception as inner_e:
-                                    st.error(f"詳細錯誤：{inner_e}")
-                                    import traceback
-                                    st.code(traceback.format_exc())
-                                    message = "❌ 執行失敗"
+                            import subprocess, json
+                            result = subprocess.run(
+                                [sys.executable, "-c",
+                                "import daily_alert; print(daily_alert.run_alert_and_return())"],
+                                capture_output=True, text=True, timeout=120,
+                                cwd=current_dir
+                            )
+                            message = result.stdout.strip() if result.returncode == 0 else "❌ 執行失敗"
                             resp = requests.post(
                                 f"{RENDER_URL}/push",
                                 json={"nickname": nickname.strip(), "message": message},
