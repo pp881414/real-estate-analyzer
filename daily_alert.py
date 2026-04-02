@@ -474,10 +474,10 @@ def main():
     print(f"\n{'='*55}")
     print(f"[OK] 完成！共通知 {total_sent} 筆 CP 值物件")
     print(f"{'='*55}")
+
 def run_alert_and_return() -> str:
     import sys, io
     sys.stdout = io.StringIO()
-def run_alert_and_return() -> str:
     cfg         = load_config()
     districts   = cfg.get("districts",  ["板橋區"])
     threshold   = cfg.get("threshold",  [-20, -10])
@@ -493,6 +493,7 @@ def run_alert_and_return() -> str:
     summary_hits   = []
     summary_nohits = []
     total_sent     = 0
+    detail_messages = []
 
     for district_name in districts:
         section_id = DISTRICT_MAP.get(district_name)
@@ -512,6 +513,7 @@ def run_alert_and_return() -> str:
             continue
         total_sent += len(cp_df)
         summary_hits.append(f"{district_name}（{len(cp_df)}筆）")
+        detail_messages.append(format_line_message(cp_df, district_name, threshold))
 
     now = datetime.now(tz=ZoneInfo('Asia/Taipei')).strftime("%m/%d %H:%M")
     t_low, t_high = (
@@ -528,6 +530,7 @@ def run_alert_and_return() -> str:
         lines.append(f"✅ 有物件：{'、'.join(summary_hits)}")
     if summary_nohits:
         lines.append(f"⭕ 無符合：{'、'.join(summary_nohits)}")
-    return "\n".join(lines)
+    all_messages = detail_messages + ["\n".join(lines)]
+    return "\n\n".join(all_messages)
 if __name__ == "__main__":
     main()
