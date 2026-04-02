@@ -1,0 +1,944 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>智慧房價系統｜技術視覺化</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=JetBrains+Mono:wght@400;600;700&display=swap');
+
+:root {
+  --bg:     #0a0e1a;
+  --bg2:    #111827;
+  --bg3:    #1a2236;
+  --border: #1e2d45;
+  --teal:   #00d4aa;
+  --blue:   #3b82f6;
+  --cyan:   #22d3ee;
+  --orange: #fb923c;
+  --red:    #f87171;
+  --yellow: #fbbf24;
+  --green:  #4ade80;
+  --purple: #a78bfa;
+  --text:   #e2e8f0;
+  --text2:  #64748b;
+  --text3:  #94a3b8;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Noto Sans TC', sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image:
+    linear-gradient(rgba(0,212,170,0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,212,170,0.025) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none; z-index: 0;
+}
+
+/* ══════════════════════════════
+   PAGES
+══════════════════════════════ */
+.page { display: none; min-height: 100vh; position: relative; z-index: 1; }
+.page.active { display: block; }
+
+/* ══════════════════════════════
+   HOME PAGE
+══════════════════════════════ */
+#home {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 40px 24px;
+  text-align: center;
+}
+#home.active { display: flex; }
+
+.home-badge {
+  display: inline-block;
+  background: rgba(0,212,170,0.1);
+  border: 1px solid rgba(0,212,170,0.3);
+  color: var(--teal);
+  font-size: 0.68rem; font-weight: 700; letter-spacing: 3px;
+  padding: 5px 18px; border-radius: 20px; margin-bottom: 20px;
+  text-transform: uppercase;
+}
+.home-title {
+  font-size: clamp(1.6rem, 4vw, 2.6rem);
+  font-weight: 900; line-height: 1.2;
+  margin-bottom: 12px;
+}
+.home-title .hl-ml  { background: linear-gradient(135deg, #3b82f6, #a78bfa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.home-title .hl-sp  { background: linear-gradient(135deg, #00d4aa, #22d3ee); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.home-sub {
+  color: var(--text2); font-size: 0.9rem; margin-bottom: 56px;
+  max-width: 480px; line-height: 1.7;
+}
+
+.home-cards {
+  display: flex; gap: 24px; flex-wrap: wrap; justify-content: center;
+  max-width: 820px; width: 100%;
+}
+.home-card {
+  flex: 1; min-width: 280px; max-width: 360px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 20px; padding: 36px 32px;
+  cursor: pointer; text-align: left;
+  position: relative; overflow: hidden;
+  transition: transform 0.3s, box-shadow 0.3s, border-color 0.3s;
+}
+.home-card::before {
+  content: ''; position: absolute;
+  inset: 0; border-radius: 20px;
+  background: var(--card-glow);
+  opacity: 0; transition: opacity 0.3s;
+}
+.home-card:hover {
+  transform: translateY(-6px);
+  box-shadow: var(--card-shadow);
+  border-color: var(--card-accent);
+}
+.home-card:hover::before { opacity: 1; }
+
+.home-card.ml-card {
+  --card-accent: #3b82f6;
+  --card-glow: radial-gradient(ellipse at top left, rgba(59,130,246,0.08), transparent 60%);
+  --card-shadow: 0 20px 60px rgba(59,130,246,0.2);
+}
+.home-card.sp-card {
+  --card-accent: #00d4aa;
+  --card-glow: radial-gradient(ellipse at top left, rgba(0,212,170,0.08), transparent 60%);
+  --card-shadow: 0 20px 60px rgba(0,212,170,0.2);
+}
+
+.card-accent-bar {
+  height: 3px; border-radius: 2px; margin-bottom: 24px;
+  width: 48px;
+}
+.ml-card .card-accent-bar { background: linear-gradient(90deg, #3b82f6, #a78bfa); }
+.sp-card .card-accent-bar { background: linear-gradient(90deg, #00d4aa, #22d3ee); }
+
+.card-icon { font-size: 2.4rem; margin-bottom: 16px; }
+.card-tag {
+  display: inline-block; font-size: 0.65rem; font-weight: 700;
+  letter-spacing: 2px; padding: 3px 10px; border-radius: 4px;
+  margin-bottom: 12px; text-transform: uppercase;
+}
+.ml-card .card-tag { background: rgba(59,130,246,0.15); color: #3b82f6; }
+.sp-card .card-tag { background: rgba(0,212,170,0.15); color: var(--teal); }
+
+.card-name {
+  font-size: 1.3rem; font-weight: 900; margin-bottom: 8px;
+}
+.card-desc {
+  font-size: 0.8rem; color: var(--text2); line-height: 1.7; margin-bottom: 20px;
+}
+.card-chapters {
+  display: flex; flex-direction: column; gap: 6px;
+}
+.chapter-item {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 0.75rem; color: var(--text3);
+}
+.chapter-dot {
+  width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0;
+}
+.ml-card .chapter-dot { background: #3b82f6; }
+.sp-card .chapter-dot { background: var(--teal); }
+
+.card-cta {
+  margin-top: 24px;
+  display: flex; align-items: center; gap: 6px;
+  font-size: 0.8rem; font-weight: 700;
+}
+.ml-card .card-cta { color: #3b82f6; }
+.sp-card .card-cta { color: var(--teal); }
+
+/* ══════════════════════════════
+   INNER PAGE WRAPPER
+══════════════════════════════ */
+.inner-page { padding: 0; }
+
+/* ── 頂部導航 ── */
+.top-nav {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(10,14,26,0.92);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  padding: 12px 24px;
+  display: flex; align-items: center; gap: 16px;
+}
+.nav-back {
+  display: flex; align-items: center; gap: 6px;
+  padding: 6px 14px; border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg2); color: var(--text2);
+  cursor: pointer; font-size: 0.8rem; font-weight: 600;
+  font-family: inherit; transition: all 0.2s; white-space: nowrap;
+}
+.nav-back:hover { border-color: var(--teal); color: var(--teal); }
+.nav-divider { color: var(--border); }
+.nav-title {
+  font-size: 0.85rem; font-weight: 700; color: var(--text3);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.nav-badge {
+  margin-left: auto; font-size: 0.65rem; font-weight: 700;
+  padding: 3px 10px; border-radius: 4px; white-space: nowrap;
+}
+.nav-badge.ml { background: rgba(59,130,246,0.15); color: #3b82f6; }
+.nav-badge.sp { background: rgba(0,212,170,0.15); color: var(--teal); }
+
+.inner-content { padding: 32px 20px 60px; }
+
+/* ══════════════════════════════
+   SHARED: Tabs
+══════════════════════════════ */
+.section-header {
+  text-align: center; margin-bottom: 36px;
+}
+.section-header h2 {
+  font-size: 1.5rem; font-weight: 900; margin-bottom: 6px;
+}
+.section-header p { color: var(--text2); font-size: 0.85rem; }
+
+.tabs {
+  display: flex; gap: 6px; justify-content: center;
+  margin-bottom: 32px; flex-wrap: wrap;
+}
+.tab-btn {
+  padding: 9px 18px; border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg2); color: var(--text2);
+  cursor: pointer; font-size: 0.82rem;
+  font-family: inherit; font-weight: 600;
+  transition: all 0.2s;
+}
+.tab-btn:hover { border-color: var(--blue); color: var(--blue); }
+.tab-btn.active-ml { background: var(--blue); border-color: var(--blue); color: #fff; }
+.tab-btn.active-sp { background: var(--teal); border-color: var(--teal); color: #000; }
+
+.tab-content { display: none; animation: fadeUp 0.3s ease; }
+.tab-content.active { display: block; }
+@keyframes fadeUp {
+  from { opacity:0; transform:translateY(10px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+
+/* ══════════════════════════════
+   SHARED: Cards & Code
+══════════════════════════════ */
+.card {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: 14px; padding: 26px; margin-bottom: 20px;
+  position: relative; overflow: hidden;
+}
+.card::before {
+  content: ''; position: absolute;
+  top: 0; left: 0; right: 0; height: 2px;
+}
+.ml-theme .card::before { background: linear-gradient(90deg, var(--blue), var(--purple), transparent); }
+.sp-theme .card::before { background: linear-gradient(90deg, var(--teal), var(--cyan), transparent); }
+
+.card-title {
+  font-size: 0.7rem; font-weight: 700; letter-spacing: 2.5px;
+  text-transform: uppercase; color: var(--text2); margin-bottom: 18px;
+}
+
+.code-block {
+  background: #070c14; border: 1px solid var(--border);
+  border-radius: 10px; padding: 16px 18px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.76rem; line-height: 1.8;
+  margin: 12px 0; overflow-x: auto;
+}
+.code-block .c-comment { color: #3d5a80; }
+.code-block .c-key     { color: var(--cyan); }
+.code-block .c-str     { color: var(--teal); }
+.code-block .c-func    { color: var(--yellow); }
+.code-block .c-num     { color: var(--orange); }
+.code-block .c-kw      { color: var(--purple); }
+.code-block .c-var     { color: var(--text3); }
+
+/* ML: code-inline green style */
+.code-inline {
+  font-family: 'JetBrains Mono', monospace; font-size: 0.76rem;
+  background: #070c14; border-radius: 6px; padding: 10px 14px;
+  color: var(--green); border: 1px solid var(--border);
+  margin-top: 8px; white-space: pre-wrap; line-height: 1.6;
+  display: block;
+}
+
+/* ══════════════════════════════
+   ML STYLES
+══════════════════════════════ */
+.pipeline { display: flex; align-items: stretch; gap: 0; flex-wrap: wrap; justify-content: center; }
+.pipe-step {
+  background: var(--bg3); border: 1px solid var(--border);
+  border-radius: 10px; padding: 18px 14px; min-width: 120px; max-width: 150px;
+  text-align: center; cursor: pointer; transition: all 0.25s; flex: 1;
+}
+.pipe-step:hover, .pipe-step.active {
+  border-color: var(--blue); background: rgba(88,166,255,0.07);
+  transform: translateY(-3px); box-shadow: 0 8px 24px rgba(88,166,255,0.15);
+}
+.pipe-step .step-icon { font-size: 1.6rem; margin-bottom: 8px; }
+.pipe-step .step-name { font-size: 0.78rem; font-weight: 700; margin-bottom: 4px; }
+.pipe-step .step-sub  { font-size: 0.66rem; color: var(--text2); line-height: 1.4; }
+.pipe-arrow { display: flex; align-items: center; padding: 0 5px; color: var(--text2); font-size: 1.1rem; align-self: center; }
+.pipe-detail {
+  background: rgba(88,166,255,0.06); border: 1px solid rgba(88,166,255,0.25);
+  border-radius: 10px; padding: 18px 22px; margin-top: 16px;
+  display: none; animation: fadeUp 0.2s;
+}
+.pipe-detail.show { display: block; }
+.pipe-detail h4 { color: var(--blue); margin-bottom: 10px; font-size: 0.95rem; }
+.pipe-detail p  { color: var(--text2); font-size: 0.82rem; line-height: 1.7; margin-bottom: 8px; }
+
+.feat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 12px; }
+.feat-card { background: var(--bg3); border-radius: 10px; padding: 14px; border: 1px solid var(--border); transition: all 0.2s; }
+.feat-card:hover { transform: translateY(-2px); }
+.feat-card.type-location { border-top: 3px solid var(--blue); }
+.feat-card.type-age      { border-top: 3px solid var(--orange); }
+.feat-card.type-floor    { border-top: 3px solid var(--purple); }
+.feat-card.type-btype    { border-top: 3px solid var(--green); }
+.feat-card.type-interact { border-top: 3px solid var(--yellow); }
+.feat-card .feat-name { font-size: 0.78rem; font-weight: 700; margin-bottom: 5px; font-family: 'JetBrains Mono', monospace; }
+.feat-card .feat-desc { font-size: 0.72rem; color: var(--text2); line-height: 1.5; }
+.feat-card .feat-tag { display: inline-block; font-size: 0.62rem; padding: 2px 7px; border-radius: 4px; margin-bottom: 5px; font-weight: 700; }
+.tag-location { background: rgba(88,166,255,0.15); color: var(--blue); }
+.tag-age      { background: rgba(240,136,62,0.15);  color: var(--orange); }
+.tag-floor    { background: rgba(188,140,255,0.15); color: var(--purple); }
+.tag-btype    { background: rgba(63,185,80,0.15);   color: var(--green); }
+.tag-interact { background: rgba(227,179,65,0.15);  color: var(--yellow); }
+.feat-legend  { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+.legend-item  { display: flex; align-items: center; gap: 6px; font-size: 0.76rem; }
+.legend-dot   { width: 10px; height: 10px; border-radius: 2px; }
+
+.gb-container { display: flex; flex-direction: column; gap: 16px; }
+.gb-step { display: flex; gap: 14px; align-items: flex-start; opacity: 0; transform: translateX(-20px); transition: all 0.4s ease; }
+.gb-step.visible { opacity: 1; transform: translateX(0); }
+.gb-num { width: 34px; height: 34px; border-radius: 50%; background: var(--blue); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 0.88rem; flex-shrink: 0; margin-top: 2px; }
+.gb-body { flex: 1; }
+.gb-body h4 { font-size: 0.88rem; font-weight: 700; margin-bottom: 6px; }
+.gb-body p  { font-size: 0.8rem; color: var(--text2); line-height: 1.6; }
+.tree-viz { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+.tree-box { background: var(--bg3); border: 1px solid var(--border); border-radius: 8px; padding: 7px 11px; font-size: 0.72rem; font-family: 'JetBrains Mono', monospace; text-align: center; min-width: 72px; }
+.tree-box.correcting { border-color: var(--orange); color: var(--orange); }
+.tree-box.final      { border-color: var(--green);  color: var(--green);  background: rgba(63,185,80,0.08); }
+.mape-bar-wrap { margin-top: 8px; }
+.mape-bar-bg   { background: var(--border); border-radius: 3px; height: 5px; overflow: hidden; }
+.mape-bar-fill { height: 100%; border-radius: 3px; transition: width 0.8s ease 0.2s; }
+.error-label   { font-size: 0.7rem; color: var(--text2); margin-bottom: 3px; }
+
+.summary-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; margin-bottom: 20px; }
+.summary-box { background: var(--bg3); border-radius: 10px; padding: 14px; text-align: center; border: 1px solid var(--border); }
+.summary-box .s-val   { font-size: 1.4rem; font-weight: 900; margin-bottom: 4px; }
+.summary-box .s-label { font-size: 0.7rem; color: var(--text2); }
+.results-grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(190px,1fr)); gap: 10px; }
+.district-card { background: var(--bg3); border-radius: 10px; padding: 13px; border: 1px solid var(--border); transition: all 0.2s; position: relative; overflow: hidden; }
+.district-card::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; }
+.district-card.good::before   { background: var(--green); }
+.district-card.mid::before    { background: var(--yellow); }
+.district-card.poor::before   { background: var(--red); }
+.district-card.backup::before { background: var(--text2); }
+.district-card:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,0.3); }
+.d-name   { font-size: 0.88rem; font-weight: 700; margin-bottom: 7px; }
+.d-count  { font-size: 0.68rem; color: var(--text2); margin-bottom: 6px; }
+.d-metric { display: flex; justify-content: space-between; font-size: 0.73rem; }
+.d-metric .label { color: var(--text2); }
+.d-metric .val   { font-weight: 700; font-family: 'JetBrains Mono', monospace; }
+.val.good { color: var(--green); } .val.mid { color: var(--yellow); } .val.poor { color: var(--red); } .val.na { color: var(--text2); }
+
+.compare-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.compare-box { border-radius: 10px; padding: 18px; border: 1px solid; }
+.compare-box.bad  { border-color: rgba(248,81,73,0.4); background: rgba(248,81,73,0.05); }
+.compare-box.good { border-color: rgba(63,185,80,0.4);  background: rgba(63,185,80,0.05); }
+.compare-box h4 { font-size: 0.88rem; font-weight: 700; margin-bottom: 10px; }
+.compare-box.bad h4  { color: var(--red); }
+.compare-box.good h4 { color: var(--green); }
+.flow-steps { display: flex; flex-direction: column; gap: 7px; }
+.flow-item { padding: 7px 11px; border-radius: 6px; font-size: 0.76rem; font-family: 'JetBrains Mono', monospace; line-height: 1.5; }
+.flow-item.problem { background: rgba(248,81,73,0.1);  color: var(--red);   border-left: 3px solid var(--red); }
+.flow-item.normal  { background: var(--bg3);            color: var(--text2); }
+.flow-item.fix     { background: rgba(63,185,80,0.1);   color: var(--green); border-left: 3px solid var(--green); }
+
+/* ══════════════════════════════
+   SPIDER STYLES
+══════════════════════════════ */
+.flow-container { display: flex; flex-direction: column; align-items: center; }
+.flow-row { display: flex; align-items: stretch; gap: 10px; width: 100%; justify-content: center; }
+.flow-node {
+  background: var(--bg3); border: 1px solid var(--border);
+  border-radius: 12px; padding: 16px 14px; cursor: pointer;
+  transition: all 0.25s; flex: 1; max-width: 200px; position: relative; overflow: hidden;
+}
+.flow-node::after { content:''; position:absolute; bottom:0; left:0; right:0; height:2px; background: linear-gradient(90deg, var(--teal), var(--blue)); transform:scaleX(0); transition:transform 0.25s; }
+.flow-node:hover, .flow-node.active { border-color: var(--teal); background: rgba(0,212,170,0.05); transform:translateY(-3px); box-shadow: 0 8px 28px rgba(0,212,170,0.12); }
+.flow-node:hover::after, .flow-node.active::after { transform: scaleX(1); }
+.flow-node .fn-icon { font-size: 1.5rem; margin-bottom: 7px; }
+.flow-node .fn-name { font-size: 0.82rem; font-weight: 700; margin-bottom: 4px; }
+.flow-node .fn-sub  { font-size: 0.68rem; color: var(--text2); line-height: 1.4; }
+.flow-node .fn-tag  { display: inline-block; font-size: 0.6rem; font-weight: 700; padding: 2px 7px; border-radius: 4px; margin-bottom: 5px; }
+.tag-step1 { background: rgba(0,212,170,0.12); color: var(--teal); }
+.tag-step2 { background: rgba(59,130,246,0.12); color: var(--blue); }
+.tag-step3 { background: rgba(251,146,60,0.12); color: var(--orange); }
+.tag-out   { background: rgba(74,222,128,0.12); color: var(--green); }
+.flow-detail {
+  background: rgba(0,212,170,0.04); border: 1px solid rgba(0,212,170,0.2);
+  border-radius: 12px; padding: 20px 24px; margin-top: 18px; width: 100%;
+  display: none; animation: fadeUp 0.25s ease;
+}
+.flow-detail.show { display: block; }
+.flow-detail h4 { color: var(--teal); font-size: 0.95rem; margin-bottom: 10px; }
+.flow-detail p  { color: var(--text3); font-size: 0.82rem; line-height: 1.75; margin-bottom: 10px; }
+
+.csrf-actors { display: grid; grid-template-columns: 1fr 60px 1fr; gap: 14px; align-items: center; margin: 16px 0; }
+.actor-box { background: var(--bg3); border-radius: 10px; padding: 16px; text-align: center; border: 1px solid var(--border); }
+.actor-box .actor-icon { font-size: 1.8rem; margin-bottom: 6px; }
+.actor-box .actor-name { font-size: 0.82rem; font-weight: 700; }
+.actor-box .actor-sub  { font-size: 0.68rem; color: var(--text2); }
+.msg-flow { display: flex; flex-direction: column; gap: 9px; margin: 16px 0; }
+.msg-item { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 8px; background: var(--bg3); border: 1px solid var(--border); opacity: 0; transform: translateX(-10px); transition: all 0.4s ease; }
+.msg-item.visible { opacity: 1; transform: translateX(0); }
+.msg-dir  { font-size: 0.68rem; font-weight: 700; padding: 3px 7px; border-radius: 4px; white-space: nowrap; flex-shrink: 0; }
+.dir-req  { background: rgba(59,130,246,0.15); color: var(--blue); }
+.dir-res  { background: rgba(0,212,170,0.15);  color: var(--teal); }
+.dir-lock { background: rgba(251,146,60,0.15); color: var(--orange); }
+.msg-text { font-size: 0.78rem; color: var(--text3); flex: 1; }
+.msg-code { font-family: 'JetBrains Mono', monospace; font-size: 0.68rem; color: var(--teal); background: rgba(0,212,170,0.08); padding: 2px 7px; border-radius: 4px; }
+
+.api-url-demo { background: #070c14; border-radius: 10px; padding: 14px 18px; border: 1px solid var(--border); font-family: 'JetBrains Mono', monospace; font-size: 0.73rem; line-height: 1.9; margin: 12px 0; }
+.hl-domain { color: var(--cyan); } .hl-path { color: var(--text3); } .hl-param { color: var(--teal); } .hl-val { color: var(--orange); } .hl-change { color: var(--yellow); font-weight: 700; }
+
+.pages-demo { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; margin: 14px 0; }
+.page-card { background: var(--bg3); border-radius: 10px; padding: 13px; border: 1px solid var(--border); text-align: center; transition: all 0.2s; }
+.page-card.fetching { border-color: var(--blue); box-shadow: 0 0 14px rgba(59,130,246,0.2); animation: fetchpulse 1s ease-in-out infinite; }
+.page-card.done     { border-color: var(--teal); background: rgba(0,212,170,0.04); }
+@keyframes fetchpulse { 0%,100% { opacity:1; } 50% { opacity:0.6; } }
+.pc-num   { font-size: 1rem; font-weight: 900; margin-bottom: 5px; }
+.pc-row   { font-size: 0.68rem; color: var(--text2); margin-bottom: 4px; font-family: 'JetBrains Mono', monospace; }
+.pc-count { font-size: 0.76rem; font-weight: 700; }
+.page-card.done .pc-count { color: var(--teal); }
+.pc-status { font-size: 0.64rem; margin-top: 5px; }
+
+.parse-demo { display: grid; grid-template-columns: 1fr 36px 1fr; gap: 14px; align-items: start; }
+.raw-json    { background: #070c14; border-radius: 10px; padding: 14px; border: 1px solid var(--border); font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; line-height: 1.9; }
+.parsed-result { background: #070c14; border-radius: 10px; padding: 14px; border: 1px solid rgba(0,212,170,0.3); font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; line-height: 1.9; }
+.json-key { color: var(--cyan); } .json-val { color: var(--teal); } .json-null { color: var(--text2); } .json-hl { background: rgba(251,146,60,0.15); border-radius: 3px; padding: 0 2px; }
+.pr-key { color: var(--text3); } .pr-val { color: var(--green); } .pr-label { font-size: 0.63rem; color: var(--teal); display:block; margin-bottom:8px; font-weight:700; letter-spacing:1px; }
+.parse-arrow-col { display: flex; align-items: center; justify-content: center; padding-top: 36px; }
+
+.fallback-steps { display: flex; flex-direction: column; gap: 8px; margin: 14px 0; }
+.fb-step { display: flex; align-items: center; gap: 10px; padding: 9px 13px; border-radius: 8px; background: var(--bg3); border: 1px solid var(--border); }
+.fb-step.active-fb { border-color: var(--teal); background: rgba(0,212,170,0.04); }
+.fb-step .fb-num { width: 22px; height: 22px; border-radius: 50%; background: var(--bg2); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 0.68rem; font-weight: 700; flex-shrink: 0; font-family: 'JetBrains Mono', monospace; }
+.fb-step.active-fb .fb-num { background: var(--teal); color: #000; border-color: var(--teal); }
+.fb-step .fb-code { font-family: 'JetBrains Mono', monospace; font-size: 0.74rem; color: var(--cyan); flex: 1; }
+.fb-step .fb-desc { font-size: 0.7rem; color: var(--text2); }
+
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.feature-box { background: var(--bg3); border-radius: 12px; padding: 18px; border: 1px solid var(--border); }
+.feature-box h4 { font-size: 0.85rem; font-weight: 700; margin-bottom: 10px; display: flex; align-items: center; gap: 7px; }
+.feature-box p  { font-size: 0.78rem; color: var(--text3); line-height: 1.7; margin-bottom: 8px; }
+.delay-viz { display: flex; align-items: center; gap: 6px; margin: 8px 0; flex-wrap: wrap; }
+.delay-req  { padding: 5px 10px; border-radius: 6px; font-size: 0.7rem; font-family: 'JetBrains Mono', monospace; background: rgba(59,130,246,0.12); border: 1px solid rgba(59,130,246,0.3); color: var(--blue); }
+.delay-wait { padding: 5px 10px; border-radius: 6px; font-size: 0.7rem; background: rgba(251,146,60,0.1); border: 1px dashed rgba(251,146,60,0.3); color: var(--orange); }
+.dedup-flow { display: flex; flex-direction: column; gap: 7px; margin: 8px 0; }
+.dedup-item { padding: 7px 11px; border-radius: 6px; font-size: 0.73rem; font-family: 'JetBrains Mono', monospace; }
+.dedup-in   { background: var(--bg2); color: var(--text3); border: 1px solid var(--border); }
+.dedup-proc { background: rgba(251,191,36,0.08); color: var(--yellow); border: 1px solid rgba(251,191,36,0.2); }
+.dedup-out  { background: rgba(74,222,128,0.08);  color: var(--green);  border: 1px solid rgba(74,222,128,0.2); }
+
+@media (max-width: 600px) {
+  .home-cards { flex-direction: column; }
+  .pipeline, .flow-row { flex-direction: column; align-items: center; }
+  .pipe-arrow { transform: rotate(90deg); }
+  .compare-grid, .two-col, .parse-demo, .csrf-actors { grid-template-columns: 1fr; }
+  .parse-arrow-col { display: none; }
+  .summary-row { grid-template-columns: repeat(2,1fr); }
+  .tab-btn { font-size: 0.76rem; padding: 8px 12px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════
+     HOME PAGE
+══════════════════════════════ -->
+<div id="home" class="page active">
+  <div class="home-badge">智慧房價診斷系統 · 技術說明</div>
+  <h1 class="home-title">
+    選擇想了解的<br>
+    <span class="hl-ml">機器學習</span> 或 <span class="hl-sp">爬蟲</span> 技術
+  </h1>
+  <p class="home-sub">點擊下方卡片，進入對應的互動式視覺化說明頁面</p>
+
+  <div class="home-cards">
+    <!-- ML Card -->
+    <div class="home-card ml-card" onclick="goTo('ml')">
+      <div class="card-accent-bar"></div>
+      <div class="card-icon">🤖</div>
+      <div class="card-tag">Machine Learning</div>
+      <div class="card-name">機器學習模型</div>
+      <div class="card-desc">price_model_v2.py 的完整技術說明，從特徵工程到 Gradient Boosting 演算法，以及 Data Leakage 的發現與修正。</div>
+      <div class="card-chapters">
+        <div class="chapter-item"><div class="chapter-dot"></div>整體 ML Pipeline</div>
+        <div class="chapter-item"><div class="chapter-dot"></div>22 個特徵工程</div>
+        <div class="chapter-item"><div class="chapter-dot"></div>Gradient Boosting 原理</div>
+        <div class="chapter-item"><div class="chapter-dot"></div>各行政區訓練結果</div>
+        <div class="chapter-item"><div class="chapter-dot"></div>Data Leakage 修正</div>
+      </div>
+      <div class="card-cta">進入說明 →</div>
+    </div>
+
+    <!-- Spider Card -->
+    <div class="home-card sp-card" onclick="goTo('spider')">
+      <div class="card-accent-bar"></div>
+      <div class="card-icon">🕷️</div>
+      <div class="card-tag">Web Scraping</div>
+      <div class="card-name">爬蟲系統</div>
+      <div class="card-desc">Spider.py 爬取 591 房屋網的完整流程，包含 CSRF Token 突破防爬機制、分頁 API 請求，以及多層 Fallback 資料解析。</div>
+      <div class="card-chapters">
+        <div class="chapter-item"><div class="chapter-dot"></div>整體爬蟲流程</div>
+        <div class="chapter-item"><div class="chapter-dot"></div>CSRF Token 取得動畫</div>
+        <div class="chapter-item"><div class="chapter-dot"></div>分頁 API 爬取模擬</div>
+        <div class="chapter-item"><div class="chapter-dot"></div>JSON 資料解析對照</div>
+        <div class="chapter-item"><div class="chapter-dot"></div>防封鎖與去重機制</div>
+      </div>
+      <div class="card-cta">進入說明 →</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════
+     ML PAGE
+══════════════════════════════ -->
+<div id="ml-page" class="page inner-page ml-theme">
+  <nav class="top-nav">
+    <button class="nav-back" onclick="goHome()">← 返回首頁</button>
+    <span class="nav-divider">|</span>
+    <span class="nav-title">🤖 price_model_v2.py 機器學習視覺化</span>
+    <span class="nav-badge ml">Machine Learning</span>
+  </nav>
+  <div class="inner-content">
+    <div class="section-header">
+      <h2>🏠 機器學習模型說明</h2>
+      <p>點擊各頁籤查看每個技術環節</p>
+    </div>
+    <div class="tabs" id="ml-tabs">
+      <button class="tab-btn active-ml" onclick="mlTab('pipeline',this)">① 整體流程</button>
+      <button class="tab-btn" onclick="mlTab('features',this)">② 特徵工程</button>
+      <button class="tab-btn" onclick="mlTab('gbdt',this)">③ Gradient Boosting</button>
+      <button class="tab-btn" onclick="mlTab('results',this)">④ 訓練結果</button>
+      <button class="tab-btn" onclick="mlTab('leakage',this)">⑤ Data Leakage</button>
+    </div>
+
+    <!-- ① 整體流程 -->
+    <div id="ml-pipeline" class="tab-content active">
+      <div class="card">
+        <div class="card-title">整體 ML Pipeline — 點擊各步驟查看說明</div>
+        <div class="pipeline">
+          <div class="pipe-step" onclick="showPipe('d-data',this)"><div class="step-icon">📦</div><div class="step-name">資料載入</div><div class="step-sub">實價登錄 CSV<br>36,481 筆</div></div>
+          <div class="pipe-arrow">→</div>
+          <div class="pipe-step" onclick="showPipe('d-clean',this)"><div class="step-icon">🧹</div><div class="step-name">資料清洗</div><div class="step-sub">IQR P5~P95<br>各區獨立過濾</div></div>
+          <div class="pipe-arrow">→</div>
+          <div class="pipe-step" onclick="showPipe('d-feat',this)"><div class="step-icon">⚙️</div><div class="step-name">特徵工程</div><div class="step-sub">22 個特徵<br>Target Encoding</div></div>
+          <div class="pipe-arrow">→</div>
+          <div class="pipe-step" onclick="showPipe('d-split',this)"><div class="step-icon">✂️</div><div class="step-name">分區訓練</div><div class="step-sub">18 個專屬模型<br>+ 全局備援</div></div>
+          <div class="pipe-arrow">→</div>
+          <div class="pipe-step" onclick="showPipe('d-eval',this)"><div class="step-icon">📊</div><div class="step-name">模型評估</div><div class="step-sub">MAE / MAPE / R²<br>無 Leakage</div></div>
+          <div class="pipe-arrow">→</div>
+          <div class="pipe-step" onclick="showPipe('d-pred',this)"><div class="step-icon">🎯</div><div class="step-name">預測估價</div><div class="step-sub">單價 + 信心區間<br>相似案例</div></div>
+        </div>
+        <div id="d-data" class="pipe-detail show"><h4>📦 資料載入</h4><p>讀取 real_estate_market_pro.csv，只使用「實價登錄」來源（成交價才可靠，591 掛牌價偏高）。</p><div class="code-inline">df = df[df['來源'] == '實價登錄'].copy()
+df = df[(df['單價'] >= 15) & (df['單價'] <= 120)]</div></div>
+        <div id="d-clean" class="pipe-detail"><h4>🧹 資料清洗：IQR 過濾</h4><p>每個行政區各自做 P5~P95 過濾，板橋的標準和淡水不同，更合理。</p><div class="code-inline">def iqr_filter(g):
+    Q1, Q3 = g['單價'].quantile(0.05), g['單價'].quantile(0.95)
+    return g[(g['單價'] >= Q1) & (g['單價'] <= Q3)]</div></div>
+        <div id="d-feat" class="pipe-detail"><h4>⚙️ 特徵工程</h4><p>把原始的「行政區、街道、屋齡、樓層、型態」轉成模型能理解的 22 個數值特徵。詳見「特徵工程」頁籤。</p></div>
+        <div id="d-split" class="pipe-detail"><h4>✂️ 分區訓練策略</h4><p>樣本 ≥ 100 筆的行政區訓練專屬模型（共 18 區），不足的偏遠區使用全局備援模型。</p><div class="code-inline">if count >= MIN_SAMPLES:
+    self.models[district] = train_one(df_district)
+# 不足 → fallback 到 global_model</div></div>
+        <div id="d-eval" class="pipe-detail"><h4>📊 評估指標（修正後無 Leakage）</h4><p>先分割 train/test，只用訓練集計算 Target Encoding，測試集用 map 套入。MAE 平均 4.65萬，MAPE 11.4%，為真實數字。</p></div>
+        <div id="d-pred" class="pipe-detail"><h4>🎯 預測輸出</h4><p>預測時自動選擇對應行政區的專屬模型，回傳估算單價、信心區間（高/中/低）、相似成交案例。</p><div class="code-inline">return {
+    'estimated_price': 55.2,
+    'confidence':      '高',
+    'comparable_cases': [...]
+}</div></div>
+      </div>
+    </div>
+
+    <!-- ② 特徵工程 -->
+    <div id="ml-features" class="tab-content">
+      <div class="card">
+        <div class="card-title">22 個輸入特徵</div>
+        <div class="feat-legend">
+          <div class="legend-item"><div class="legend-dot" style="background:var(--blue)"></div>地段</div>
+          <div class="legend-item"><div class="legend-dot" style="background:var(--orange)"></div>屋齡</div>
+          <div class="legend-item"><div class="legend-dot" style="background:var(--purple)"></div>樓層</div>
+          <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div>建物型態</div>
+          <div class="legend-item"><div class="legend-dot" style="background:var(--yellow)"></div>互動特徵</div>
+        </div>
+        <div class="feat-grid">
+          <div class="feat-card type-location"><div class="feat-tag tag-location">地段</div><div class="feat-name">street_enc</div><div class="feat-desc">路段平均房價（平滑 Target Encoding）<br>把「文化路」轉成數字 58.3</div></div>
+          <div class="feat-card type-location"><div class="feat-tag tag-location">地段</div><div class="feat-name">street_age_enc</div><div class="feat-desc">路段 × 屋齡段的交叉編碼<br>「文化路_中古」有專屬均價</div></div>
+          <div class="feat-card type-location"><div class="feat-tag tag-location">地段</div><div class="feat-name">type_enc</div><div class="feat-desc">建物型態的平均房價<br>大樓均價 vs 公寓均價</div></div>
+          <div class="feat-card type-age"><div class="feat-tag tag-age">屋齡</div><div class="feat-name">age_log</div><div class="feat-desc">log(屋齡+1)，捕捉遞減效應<br>新屋折價快、舊屋折價慢</div></div>
+          <div class="feat-card type-age"><div class="feat-tag tag-age">屋齡</div><div class="feat-name">age_sq</div><div class="feat-desc">屋齡平方，捕捉非線性曲線</div></div>
+          <div class="feat-card type-age"><div class="feat-tag tag-age">屋齡</div><div class="feat-name">is_new / is_mid_new<br>is_mid / is_old / is_very_old</div><div class="feat-desc">屋齡分段 One-Hot<br>≤3 / 3~8 / 8~15 / 15~25 / >25 年</div></div>
+          <div class="feat-card type-floor"><div class="feat-tag tag-floor">樓層</div><div class="feat-name">floor_ratio</div><div class="feat-desc">樓層比例 = 樓層 ÷ 總樓層<br>10/12 = 0.83（高樓）</div></div>
+          <div class="feat-card type-floor"><div class="feat-tag tag-floor">樓層</div><div class="feat-name">is_top / is_low / is_high</div><div class="feat-desc">頂樓 / 低樓層(≤2F) / 高樓層(≥70%)</div></div>
+          <div class="feat-card type-btype"><div class="feat-tag tag-btype">型態</div><div class="feat-name">is_apt / is_bld / is_town</div><div class="feat-desc">公寓 / 大樓華廈 / 透天厝 One-Hot</div></div>
+          <div class="feat-card type-interact"><div class="feat-tag tag-interact">互動</div><div class="feat-name">age_x_apt</div><div class="feat-desc">屋齡 × 公寓<br>公寓老化折扣比大樓更嚴重</div></div>
+          <div class="feat-card type-interact"><div class="feat-tag tag-interact">互動</div><div class="feat-name">floor_x_bld</div><div class="feat-desc">樓層比 × 大樓<br>大樓才有樓層溢價效果</div></div>
+          <div class="feat-card type-interact"><div class="feat-tag tag-interact">互動</div><div class="feat-name">new_x_bld</div><div class="feat-desc">新成屋 × 大樓<br>新大樓溢價最高</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ③ GBDT -->
+    <div id="ml-gbdt" class="tab-content">
+      <div class="card">
+        <div class="card-title">Gradient Boosting 原理</div>
+        <div class="gb-container" id="gb-steps">
+          <div class="gb-step"><div class="gb-num">1</div><div class="gb-body"><h4>第 1 棵樹：初始預測</h4><p>先用簡單決策樹預測房價，結果有誤差。例如實際 58 萬，預測 50 萬，誤差 8 萬。</p><div class="tree-viz"><div class="tree-box">樹 #1<br>預測 50萬</div><div style="display:flex;align-items:center;color:var(--red);font-size:0.78rem;padding:0 8px">誤差 8萬 ❌</div></div><div class="mape-bar-wrap"><div class="error-label">誤差大小</div><div class="mape-bar-bg"><div class="mape-bar-fill" style="width:80%;background:var(--red)"></div></div></div></div></div>
+          <div class="gb-step"><div class="gb-num">2</div><div class="gb-body"><h4>第 2 棵樹：專門學誤差</h4><p>第 2 棵樹不學房價，而是學第 1 棵的「殘差」，把 8 萬誤差修正一部分。</p><div class="tree-viz"><div class="tree-box">樹 #1<br>50萬</div><div style="display:flex;align-items:center;padding:0 4px">+</div><div class="tree-box correcting">樹 #2<br>+5萬</div><div style="display:flex;align-items:center;color:var(--yellow);font-size:0.78rem;padding:0 8px">誤差剩 3萬</div></div><div class="mape-bar-wrap"><div class="error-label">誤差大小</div><div class="mape-bar-bg"><div class="mape-bar-fill" style="width:30%;background:var(--yellow)"></div></div></div></div></div>
+          <div class="gb-step"><div class="gb-num">3</div><div class="gb-body"><h4>疊加 400 棵：誤差越來越小</h4><p>每棵樹都在修正前面的殘差，400 棵疊加後誤差大幅縮小。</p><div class="tree-viz"><div class="tree-box">樹 #1</div><span style="padding:0 3px;color:var(--text2)">+</span><div class="tree-box correcting">樹 #2</div><span style="padding:0 3px;color:var(--text2)">+</span><div class="tree-box correcting">樹 #3</div><span style="padding:0 3px;color:var(--text2)">... +</span><div class="tree-box final">樹 #400<br>✅ 57.8萬</div></div><div class="mape-bar-wrap"><div class="error-label">誤差大小</div><div class="mape-bar-bg"><div class="mape-bar-fill" style="width:9%;background:var(--green)"></div></div></div></div></div>
+          <div class="gb-step"><div class="gb-num">4</div><div class="gb-body"><h4>為什麼用小的 learning_rate？</h4><p>learning_rate = 0.04，每棵樹只修正 4% 誤差，步子小但方向穩，避免過擬合。</p><div class="code-inline">GradientBoostingRegressor(
+    n_estimators=400,    # 400 棵樹
+    learning_rate=0.04,  # 每步修正 4%
+    max_depth=4,         # 每棵樹深度限制
+    subsample=0.8,       # 每次只用 80% 資料
+)</div></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ④ 訓練結果 -->
+    <div id="ml-results" class="tab-content">
+      <div class="card">
+        <div class="card-title">整體表現（修正後真實數字）</div>
+        <div class="summary-row">
+          <div class="summary-box"><div class="s-val" style="color:var(--blue)">18</div><div class="s-label">專屬模型數量</div></div>
+          <div class="summary-box"><div class="s-val" style="color:var(--green)">4.65萬</div><div class="s-label">平均 MAE（/坪）</div></div>
+          <div class="summary-box"><div class="s-val" style="color:var(--yellow)">11.4%</div><div class="s-label">平均 MAPE</div></div>
+          <div class="summary-box"><div class="s-val" style="color:var(--purple)">0.498</div><div class="s-label">平均 R²</div></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">各行政區模型表現</div>
+        <div class="results-grid" id="districts-grid"></div>
+      </div>
+    </div>
+
+    <!-- ⑤ Data Leakage -->
+    <div id="ml-leakage" class="tab-content">
+      <div class="card">
+        <div class="card-title">⚠️ Data Leakage 問題與修正</div>
+        <p style="font-size:0.83rem;color:var(--text2);margin-bottom:18px;line-height:1.7">Target Encoding 若用全部資料計算（包含測試集），模型「偷看」了測試集，評估指標虛高。修正後 MAPE 從 9.6% → 11.4%，才是真實表現。</p>
+        <div class="compare-grid">
+          <div class="compare-box bad"><h4>❌ 修正前（有問題）</h4><div class="flow-steps"><div class="flow-item normal">載入全部資料</div><div class="flow-item problem">⚠️ 用全部資料計算 Target Encoding<br>→ 測試集資訊污染了 encoding</div><div class="flow-item normal">才分割 train / test</div><div class="flow-item problem">⚠️ evaluate(X_test) → 指標虛高！</div></div></div>
+          <div class="compare-box good"><h4>✅ 修正後（正確）</h4><div class="flow-steps"><div class="flow-item fix">✅ 先分割 train / test</div><div class="flow-item fix">✅ 只用訓練集計算 encoding</div><div class="flow-item fix">✅ map 套用到測試集（未知填均值）</div><div class="flow-item fix">✅ evaluate(X_test) → 真實可靠</div></div></div>
+        </div>
+        <div class="card-title" style="margin-top:20px">修正程式碼</div>
+        <div class="code-inline">train_street_mean = X_train.groupby('街道')['單價'].mean()
+X_train['street_enc'] = X_train['街道'].map(train_street_mean).fillna(gm)
+X_test['street_enc']  = X_test['街道'].map(train_street_mean).fillna(gm)
+# ↑ 測試集用訓練集的統計，不會偷看答案</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════
+     SPIDER PAGE
+══════════════════════════════ -->
+<div id="spider-page" class="page inner-page sp-theme">
+  <nav class="top-nav">
+    <button class="nav-back" onclick="goHome()">← 返回首頁</button>
+    <span class="nav-divider">|</span>
+    <span class="nav-title">🕷️ Spider.py 爬蟲視覺化</span>
+    <span class="nav-badge sp">Web Scraping</span>
+  </nav>
+  <div class="inner-content">
+    <div class="section-header">
+      <h2>🕷️ 爬蟲系統說明</h2>
+      <p>點擊各頁籤查看每個技術環節</p>
+    </div>
+    <div class="tabs" id="sp-tabs">
+      <button class="tab-btn active-sp" onclick="spTab('flow',this)">① 整體流程</button>
+      <button class="tab-btn" onclick="spTab('csrf',this)">② CSRF Token</button>
+      <button class="tab-btn" onclick="spTab('paging',this)">③ 分頁爬取</button>
+      <button class="tab-btn" onclick="spTab('parse',this)">④ 資料解析</button>
+      <button class="tab-btn" onclick="spTab('protect',this)">⑤ 防封鎖 & 去重</button>
+    </div>
+
+    <!-- ① 整體流程 -->
+    <div id="sp-flow" class="tab-content active">
+      <div class="card">
+        <div class="card-title">爬蟲完整流程 — 點擊各步驟查看說明</div>
+        <div class="flow-container">
+          <div class="flow-row">
+            <div class="flow-node" onclick="showFlow('fd1',this)"><div class="fn-tag tag-step1">步驟 1</div><div class="fn-icon">🔑</div><div class="fn-name">取得 CSRF Token</div><div class="fn-sub">進入 591 首頁<br>偷取防爬金鑰</div></div>
+            <div class="flow-node" onclick="showFlow('fd2',this)"><div class="fn-tag tag-step2">步驟 2</div><div class="fn-icon">📡</div><div class="fn-name">打 API 取資料</div><div class="fn-sub">分頁請求<br>每頁 30 筆 JSON</div></div>
+            <div class="flow-node" onclick="showFlow('fd3',this)"><div class="fn-tag tag-step3">步驟 3</div><div class="fn-icon">🔧</div><div class="fn-name">解析 & 清洗</div><div class="fn-sub">多層 Fallback<br>正規表達式</div></div>
+            <div class="flow-node" onclick="showFlow('fd4',this)"><div class="fn-tag tag-out">輸出</div><div class="fn-icon">💾</div><div class="fn-name">儲存 CSV</div><div class="fn-sub">591_live_data.csv<br>供 ML 使用</div></div>
+          </div>
+          <div id="fd1" class="flow-detail show"><h4>🔑 突破防爬：CSRF Token</h4><p>591 有防爬保護，直接打 API 會被擋。需先偽裝成真實瀏覽器進入首頁，從 HTML 中提取隱藏的 CSRF Token，之後每次請求都帶著它。</p><div class="code-block"><span class="c-var">r</span> = session.<span class="c-func">get</span>(<span class="c-str">"https://sale.591.com.tw/"</span>)
+<span class="c-var">soup</span> = BeautifulSoup(r.text, <span class="c-str">"html.parser"</span>)
+<span class="c-var">token</span> = soup.<span class="c-func">find</span>(<span class="c-str">"meta"</span>, {<span class="c-str">"name"</span>: <span class="c-str">"csrf-token"</span>})[<span class="c-str">"content"</span>]
+<span class="c-var">headers</span>[<span class="c-str">"X-CSRF-TOKEN"</span>] = token</div></div>
+          <div id="fd2" class="flow-detail"><h4>📡 分頁 API 請求</h4><p>591 有內部 JSON API，比爬 HTML 穩定。透過 firstRow 參數控制分頁，每頁 30 筆，最多爬 5 頁 = 150 筆。每頁間隔 2 秒防封鎖。</p><div class="code-block"><span class="c-kw">for</span> page <span class="c-kw">in</span> <span class="c-func">range</span>(<span class="c-num">5</span>):
+    time.<span class="c-func">sleep</span>(<span class="c-num">2</span>)
+    res = session.<span class="c-func">get</span>(f<span class="c-str">"...&firstRow={page*30}"</span>)
+    <span class="c-kw">if</span> <span class="c-func">len</span>(house_list) < <span class="c-num">30</span>: <span class="c-kw">break</span></div></div>
+          <div id="fd3" class="flow-detail"><h4>🔧 多層 Fallback 解析</h4><p>API 欄位不穩定，單價可能存在不同欄位名稱，設計 4 層備援確保取到數值。地址用正規表達式提取路段名稱。</p></div>
+          <div id="fd4" class="flow-detail"><h4>💾 輸出 CSV</h4><p>去除重複物件（同 houseid），只保留有效單價筆數，儲存為 UTF-8-sig CSV 供 Data_Center.py 整合。</p></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ② CSRF Token -->
+    <div id="sp-csrf" class="tab-content">
+      <div class="card">
+        <div class="card-title">CSRF Token 取得流程</div>
+        <div class="csrf-actors">
+          <div class="actor-box"><div class="actor-icon">🖥️</div><div class="actor-name">Spider.py</div><div class="actor-sub">我們的爬蟲</div></div>
+          <div style="text-align:center;color:var(--text2);font-size:1.4rem">⇄</div>
+          <div class="actor-box"><div class="actor-icon">🏢</div><div class="actor-name">591 伺服器</div><div class="actor-sub">有防爬保護</div></div>
+        </div>
+        <div class="msg-flow" id="csrf-msgs">
+          <div class="msg-item"><span class="msg-dir dir-req">REQUEST →</span><span class="msg-text">GET https://sale.591.com.tw/ （偽裝成 Chrome）</span><span class="msg-code">User-Agent: Chrome/122</span></div>
+          <div class="msg-item"><span class="msg-dir dir-res">← RESPONSE</span><span class="msg-text">回傳 HTML，裡面藏著 Token</span><span class="msg-code">&lt;meta name="csrf-token"&gt;</span></div>
+          <div class="msg-item"><span class="msg-dir dir-lock">🔑 解析</span><span class="msg-text">BeautifulSoup 找到 Token 加入 Headers</span><span class="msg-code">X-CSRF-TOKEN: abc123...</span></div>
+          <div class="msg-item"><span class="msg-dir dir-req">REQUEST →</span><span class="msg-text">帶 Token 打 API → 成功取得房屋資料 ✅</span><span class="msg-code">200 OK + JSON</span></div>
+        </div>
+        <div class="code-block">headers = {
+    <span class="c-str">"User-Agent"</span>:       <span class="c-str">"Mozilla/5.0 ... Chrome/122"</span>,  <span class="c-comment"># 假裝是 Chrome</span>
+    <span class="c-str">"X-Requested-With"</span>: <span class="c-str">"XMLHttpRequest"</span>,            <span class="c-comment"># 假裝 AJAX</span>
+    <span class="c-str">"Referer"</span>:          <span class="c-str">"https://sale.591.com.tw/"</span>,   <span class="c-comment"># 偽裝從首頁來</span>
+    <span class="c-str">"X-CSRF-TOKEN"</span>:     token,                          <span class="c-comment"># 從首頁取得的鑰匙</span>
+}</div>
+      </div>
+    </div>
+
+    <!-- ③ 分頁爬取 -->
+    <div id="sp-paging" class="tab-content">
+      <div class="card">
+        <div class="card-title">API 分頁邏輯</div>
+        <div class="api-url-demo">
+<span class="hl-domain">https://bff-house.591.com.tw</span><span class="hl-path">/v1/web/sale/list</span>?<br>
+&nbsp;&nbsp;<span class="hl-param">regionid</span>=<span class="hl-val">3</span>  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:var(--text2)">← 新北市</span><br>
+&nbsp;&nbsp;<span class="hl-param">sectionid</span>=<span class="hl-val">37</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:var(--text2)">← 板橋區</span><br>
+&nbsp;&nbsp;<span class="hl-param">firstRow</span>=<span class="hl-change" id="firstrow-demo">0</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:var(--text2)">← 從第幾筆開始（每頁 +30）</span>
+        </div>
+        <button onclick="runPageDemo()" style="padding:9px 22px;border-radius:8px;border:none;cursor:pointer;background:linear-gradient(135deg,var(--teal),var(--blue));color:#000;font-weight:700;font-size:0.82rem;margin-bottom:14px;font-family:inherit;">▶ 模擬爬取過程</button>
+        <div class="pages-demo" id="pages-demo">
+          <div class="page-card" id="pc0"><div class="pc-num">第 1 頁</div><div class="pc-row">firstRow=0</div><div class="pc-count" style="color:var(--text2)">等待中</div><div class="pc-status">⏳</div></div>
+          <div class="page-card" id="pc1"><div class="pc-num">第 2 頁</div><div class="pc-row">firstRow=30</div><div class="pc-count" style="color:var(--text2)">等待中</div><div class="pc-status">⏳</div></div>
+          <div class="page-card" id="pc2"><div class="pc-num">第 3 頁</div><div class="pc-row">firstRow=60</div><div class="pc-count" style="color:var(--text2)">等待中</div><div class="pc-status">⏳</div></div>
+          <div class="page-card" id="pc3"><div class="pc-num">第 4 頁</div><div class="pc-row">firstRow=90</div><div class="pc-count" style="color:var(--text2)">等待中</div><div class="pc-status">⏳</div></div>
+          <div class="page-card" id="pc4"><div class="pc-num">第 5 頁</div><div class="pc-row">firstRow=120</div><div class="pc-count" style="color:var(--text2)">等待中</div><div class="pc-status">⏳</div></div>
+        </div>
+        <div id="page-summary" style="display:none;padding:13px 17px;border-radius:8px;background:rgba(74,222,128,0.06);border:1px solid rgba(74,222,128,0.2);font-size:0.82rem;color:var(--green)">✅ 爬取完成！共取得 <strong>150 筆</strong>有效資料，儲存至 591_live_data.csv</div>
+        <div class="code-block" style="margin-top:14px">
+<span class="c-kw">for</span> page <span class="c-kw">in</span> <span class="c-func">range</span>(<span class="c-num">5</span>):
+    time.<span class="c-func">sleep</span>(<span class="c-num">2</span>)           <span class="c-comment"># 每頁等 2 秒</span>
+    house_list = <span class="c-func">fetch_page</span>(page)
+    <span class="c-kw">if</span> <span class="c-func">len</span>(house_list) < <span class="c-num">30</span>:
+        <span class="c-kw">break</span>               <span class="c-comment"># 最後一頁，停止</span></div>
+      </div>
+    </div>
+
+    <!-- ④ 資料解析 -->
+    <div id="sp-parse" class="tab-content">
+      <div class="card">
+        <div class="card-title">JSON 原始資料 → 標準化欄位</div>
+        <div class="parse-demo">
+          <div>
+            <div style="font-size:0.68rem;color:var(--orange);font-weight:700;letter-spacing:1px;margin-bottom:8px">📥 API 原始 JSON（欄位混亂）</div>
+            <div class="raw-json">{<br>&nbsp;&nbsp;<span class="json-key">"unitprice"</span>: <span class="json-null">null</span>,<br>&nbsp;&nbsp;<span class="json-key">"show_unitprice"</span>: <span class="json-hl json-val">"58~63萬/坪"</span>,<br>&nbsp;&nbsp;<span class="json-key">"show_price"</span>: <span class="json-val">"1680萬"</span>,<br>&nbsp;&nbsp;<span class="json-key">"showarea"</span>: <span class="json-val">"28.5坪"</span>,<br>&nbsp;&nbsp;<span class="json-key">"build_purpose"</span>: <span class="json-val">"住宅大樓"</span>,<br>&nbsp;&nbsp;<span class="json-key">"street_name"</span>: <span class="json-val">"文化路一段100號"</span>,<br>&nbsp;&nbsp;<span class="json-key">"section_name"</span>: <span class="json-val">"新北市板橋區"</span>,<br>&nbsp;&nbsp;<span class="json-key">"houseage"</span>: <span class="json-val">"15"</span><br>}</div>
+          </div>
+          <div class="parse-arrow-col"><div style="font-size:1.4rem;color:var(--teal)">→</div></div>
+          <div>
+            <div style="font-size:0.68rem;color:var(--teal);font-weight:700;letter-spacing:1px;margin-bottom:8px">📤 解析後標準欄位</div>
+            <div class="parsed-result"><span class="pr-label">parse_house() 輸出</span><span class="pr-key">"行政區"</span>: <span class="pr-val">"板橋區"</span>,<br><span class="pr-key">"街道"</span>:   <span class="pr-val">"文化路一段"</span>,<br><span class="pr-key">"型態"</span>:   <span class="pr-val">"大樓"</span>,<br><span class="pr-key">"屋齡"</span>:   <span class="pr-val">15.0</span>,<br><span class="pr-key">"總價"</span>:   <span class="pr-val">1680.0</span>,<br><span class="pr-key">"坪數"</span>:   <span class="pr-val">28.5</span>,<br><span class="pr-key">"單價"</span>:   <span class="pr-val">60.5</span>,<br><span class="pr-key">"來源"</span>:   <span class="pr-val">"591"</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">單價 4 層 Fallback</div>
+        <div class="fallback-steps">
+          <div class="fb-step active-fb"><div class="fb-num">1</div><div class="fb-code">h.get("unitprice")</div><div class="fb-desc">純數字，最可靠</div></div>
+          <div class="fb-step"><div class="fb-num">2</div><div class="fb-code">h.get("show_unitprice")</div><div class="fb-desc">含文字「58~63萬/坪」→ 取平均值</div></div>
+          <div class="fb-step"><div class="fb-num">3</div><div class="fb-code">h.get("unit_price")</div><div class="fb-desc">另一個欄位名稱的備援</div></div>
+          <div class="fb-step"><div class="fb-num">4</div><div class="fb-code">total_price ÷ area</div><div class="fb-desc">前三層都沒有 → 自行計算</div></div>
+        </div>
+        <div class="code-block"><span class="c-comment"># "58~63萬/坪" → 取平均 60.5</span>
+nums = re.<span class="c-func">findall</span>(<span class="c-str">r'[\d.]+'</span>, raw)   <span class="c-comment"># ['58', '63']</span>
+<span class="c-kw">return</span> <span class="c-func">round</span>(<span class="c-func">sum</span>(nums) / <span class="c-func">len</span>(nums), <span class="c-num">1</span>)  <span class="c-comment"># 60.5</span></div>
+      </div>
+    </div>
+
+    <!-- ⑤ 防封鎖 & 去重 -->
+    <div id="sp-protect" class="tab-content">
+      <div class="card">
+        <div class="card-title">防封鎖機制 & 資料去重</div>
+        <div class="two-col">
+          <div class="feature-box">
+            <h4><span style="color:var(--orange)">⏱️</span> 固定延遲（防封鎖）</h4>
+            <p>每次請求間隔 2 秒，模擬真實用戶，避免觸發 591 封鎖機制。</p>
+            <div class="delay-viz"><div class="delay-req">請求 #1</div><div class="delay-wait">⏳ 2秒</div><div class="delay-req">請求 #2</div><div class="delay-wait">⏳ 2秒</div><div class="delay-req">請求 #3</div></div>
+            <div class="code-block" style="margin-top:8px">time.<span class="c-func">sleep</span>(DELAY_SEC)  <span class="c-comment"># 2 秒</span>
+<span class="c-comment"># 建議改進：隨機延遲</span>
+time.<span class="c-func">sleep</span>(random.<span class="c-func">uniform</span>(<span class="c-num">1</span>, <span class="c-num">3</span>))</div>
+          </div>
+          <div class="feature-box">
+            <h4><span style="color:var(--blue)">🔍</span> 重複物件去除</h4>
+            <p>同一物件可能多頁出現，用 houseid 去重確保每筆只出現一次。</p>
+            <div class="dedup-flow"><div class="dedup-item dedup-in">原始：150 筆（含重複）</div><div class="dedup-item dedup-proc">drop_duplicates(subset=['houseid'])</div><div class="dedup-item dedup-out">去重後：~130 筆（唯一物件）</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══ 頁面切換 ══
+function goTo(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(name + '-page').classList.add('active');
+  window.scrollTo(0,0);
+  if (name === 'spider') animateMsgs();
+}
+function goHome() {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('home').classList.add('active');
+  window.scrollTo(0,0);
+}
+
+// ══ ML Tabs ══
+function mlTab(name, btn) {
+  document.querySelectorAll('#ml-page .tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('#ml-tabs .tab-btn').forEach(b => b.classList.remove('active-ml'));
+  document.getElementById('ml-' + name).classList.add('active');
+  btn.classList.add('active-ml');
+  if (name === 'gbdt') animateGB();
+  if (name === 'results') renderDistricts();
+}
+function showPipe(id, el) {
+  document.querySelectorAll('.pipe-detail').forEach(d => d.classList.remove('show'));
+  document.querySelectorAll('.pipe-step').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('show');
+  el.classList.add('active');
+}
+function animateGB() {
+  document.querySelectorAll('.gb-step').forEach((s,i) => {
+    s.classList.remove('visible');
+    setTimeout(() => s.classList.add('visible'), i * 250);
+  });
+}
+const districtData = [
+  {name:'泰山區',count:895, mape:5.8, mae:2.54,r2:0.641,type:'good'},
+  {name:'林口區',count:1994,mape:7.4, mae:3.26,r2:0.665,type:'good'},
+  {name:'五股區',count:1114,mape:9.2, mae:3.74,r2:0.725,type:'good'},
+  {name:'鶯歌區',count:764, mape:10.6,mae:3.11,r2:0.437,type:'mid'},
+  {name:'新莊區',count:3041,mape:10.4,mae:4.90,r2:0.681,type:'mid'},
+  {name:'板橋區',count:3979,mape:10.9,mae:5.81,r2:0.626,type:'mid'},
+  {name:'三重區',count:3782,mape:10.9,mae:5.76,r2:0.505,type:'mid'},
+  {name:'土城區',count:3575,mape:11.1,mae:5.46,r2:0.446,type:'mid'},
+  {name:'淡水區',count:4756,mape:11.0,mae:3.33,r2:0.331,type:'mid'},
+  {name:'中和區',count:3280,mape:10.9,mae:5.65,r2:0.573,type:'mid'},
+  {name:'永和區',count:1350,mape:11.5,mae:6.36,r2:0.352,type:'mid'},
+  {name:'蘆洲區',count:990, mape:11.8,mae:5.44,r2:0.486,type:'mid'},
+  {name:'樹林區',count:911, mape:11.0,mae:3.73,r2:0.512,type:'mid'},
+  {name:'新店區',count:2647,mape:12.7,mae:6.21,r2:0.775,type:'poor'},
+  {name:'三峽區',count:770, mape:12.1,mae:4.17,r2:0.624,type:'poor'},
+  {name:'汐止區',count:1858,mape:14.2,mae:5.58,r2:0.523,type:'poor'},
+  {name:'深坑區',count:142, mape:20.4,mae:5.47,r2:0.128,type:'poor'},
+  {name:'八里區',count:449, mape:12.5,mae:3.21,r2:-0.072,type:'poor'},
+  {name:'三芝區',count:75,  mape:null,mae:null,r2:null,type:'backup'},
+  {name:'金山區',count:45,  mape:null,mae:null,r2:null,type:'backup'},
+  {name:'瑞芳區',count:37,  mape:null,mae:null,r2:null,type:'backup'},
+  {name:'萬里區',count:20,  mape:null,mae:null,r2:null,type:'backup'},
+];
+function renderDistricts() {
+  const grid = document.getElementById('districts-grid');
+  if (grid.children.length > 0) return;
+  districtData.forEach(d => {
+    const mc = d.mape===null?'na':d.mape<8?'good':d.mape<12?'mid':'poor';
+    const bw = d.mape ? Math.min(d.mape/22*100,100) : 0;
+    const bc = {good:'var(--green)',mid:'var(--yellow)',poor:'var(--red)',backup:'var(--text2)'}[d.type];
+    grid.innerHTML += `<div class="district-card ${d.type}">
+      <div class="d-name">${d.name}</div>
+      <div class="d-count">樣本 ${d.count.toLocaleString()} 筆 · ${d.type==='backup'?'全局備援':'專屬模型'}</div>
+      <div class="d-metric"><span class="label">MAPE</span><span class="val ${mc}">${d.mape?d.mape+'%':'─'}</span></div>
+      <div class="d-metric"><span class="label">MAE</span><span class="val ${mc}">${d.mae?d.mae+'萬':'─'}</span></div>
+      <div class="d-metric"><span class="label">R²</span><span class="val ${mc}">${d.r2!==null?d.r2:'─'}</span></div>
+      <div class="mape-bar-wrap"><div class="mape-bar-bg"><div class="mape-bar-fill" style="width:${bw}%;background:${bc}"></div></div></div>
+    </div>`;
+  });
+}
+
+// ══ Spider Tabs ══
+function spTab(name, btn) {
+  document.querySelectorAll('#spider-page .tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('#sp-tabs .tab-btn').forEach(b => b.classList.remove('active-sp'));
+  document.getElementById('sp-' + name).classList.add('active');
+  btn.classList.add('active-sp');
+  if (name === 'csrf') animateMsgs();
+}
+function showFlow(id, el) {
+  document.querySelectorAll('#sp-flow .flow-detail').forEach(d => d.classList.remove('show'));
+  document.querySelectorAll('.flow-node').forEach(n => n.classList.remove('active'));
+  document.getElementById(id).classList.add('show');
+  el.classList.add('active');
+}
+function animateMsgs() {
+  document.querySelectorAll('.msg-item').forEach((m,i) => {
+    m.classList.remove('visible');
+    setTimeout(() => m.classList.add('visible'), i * 500);
+  });
+}
+
+// 分頁動畫
+let demoRunning = false;
+function runPageDemo() {
+  if (demoRunning) return;
+  demoRunning = true;
+  document.getElementById('page-summary').style.display = 'none';
+  for (let i=0;i<5;i++) {
+    const c = document.getElementById('pc'+i);
+    c.className = 'page-card';
+    c.querySelector('.pc-count').style.color='var(--text2)';
+    c.querySelector('.pc-count').textContent='等待中';
+    c.querySelector('.pc-status').textContent='⏳';
+  }
+  for (let i=0;i<5;i++) {
+    setTimeout(() => {
+      document.getElementById('pc'+i).classList.add('fetching');
+      document.getElementById('firstrow-demo').textContent = i*30;
+    }, i*900);
+    setTimeout(() => {
+      const c = document.getElementById('pc'+i);
+      c.classList.remove('fetching'); c.classList.add('done');
+      c.querySelector('.pc-count').textContent='30 筆';
+      c.querySelector('.pc-status').textContent='✅';
+    }, i*900+700);
+  }
+  setTimeout(() => { document.getElementById('page-summary').style.display='block'; demoRunning=false; }, 5*900+800);
+}
+</script>
+</body>
+</html>

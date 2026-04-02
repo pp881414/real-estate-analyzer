@@ -1,0 +1,13 @@
+{
+  "districts": [
+    "板橋區"
+  ],
+  "threshold": [
+    -10,
+    0
+  ],
+  "max_alerts": 5,
+  "house_types": [
+    "大樓"
+  ]
+}
