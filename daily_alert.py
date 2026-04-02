@@ -473,7 +473,9 @@ def main():
     print(f"\n{'='*55}")
     print(f"[OK] 完成！共通知 {total_sent} 筆 CP 值物件")
     print(f"{'='*55}")
-
+def run_alert_and_return() -> str:
+    import sys, io
+    sys.stdout = io.StringIO()
 def run_alert_and_return() -> str:
     cfg         = load_config()
     districts   = cfg.get("districts",  ["板橋區"])
