@@ -1,4 +1,5 @@
 [![Demo](https://img.shields.io/badge/🚀%20Live%20Demo-house--diagnosis.streamlit.app-ff4b4b?style=for-the-badge)](https://house-diagnosis.streamlit.app/)
+> ⚠️ 本系統資料範圍僅涵蓋**新北市**，請輸入新北市的地址或行政區進行查詢。
 # 🏠 智慧房價診斷系統 — 使用說明
 
 ## 📁 檔案結構
