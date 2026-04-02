@@ -752,30 +752,29 @@ with st.expander("🔔 每日 LINE 警報設定", expanded=False):
                 st.success("✅ 設定已儲存！")
 
     with col_push:
-        if st.button("📲  立即推播到 LINE", key="btn_push_line", use_container_width=True, type="primary"):
+        st.info("📲 掃描下方 QR Code 加入官方帳號，即可接收推播通知！")
+        RENDER_URL = "https://real-estate-analyzer-72i6.onrender.com"
+        if st.button("📲  立即推播給所有訂閱者", key="btn_push_line", use_container_width=True, type="primary"):
             if not sel_districts:
                 st.warning("請至少選一個行政區")
             elif not sel_types:
                 st.warning("請至少選一種房屋類型")
             else:
                 save_alert_config(build_cfg())
-                daily_path = os.path.join(current_dir, "daily_alert.py")
-                if not os.path.exists(daily_path):
-                    st.error("❌ 找不到 daily_alert.py，請確認檔案在同一資料夾")
-                else:
-                    with st.spinner("🔍 搜尋中，請稍候..."):
-                        try:
-                            import subprocess
-                            result = subprocess.run([sys.executable, daily_path],
-                                                   capture_output=True, text=True, timeout=120, cwd=current_dir)
-                            if result.returncode == 0:
-                                st.success("✅ 已成功推播到 LINE！")
-                            else:
-                                st.error(f"❌ 推播失敗：{result.stderr[-500:] if result.stderr else '未知錯誤'}")
-                        except subprocess.TimeoutExpired:
-                            st.error("❌ 執行超時（超過 120 秒），請稍後再試")
-                        except Exception as e:
-                            st.error(f"❌ 推播失敗：{e}")
+                with st.spinner("🔍 搜尋並推播中，請稍候..."):
+                    try:
+                        import daily_alert
+                        results = daily_alert.run_alert_and_return()
+                        message = results if isinstance(results, str) else "📊 已完成房價掃描！"
+                        resp = requests.post(
+                            f"{RENDER_URL}/broadcast",
+                            json={"message": message},
+                            timeout=30
+                        )
+                        data = resp.json()
+                        st.success(f"✅ 已成功推播給 {data.get('sent', 0)} 位訂閱者！")
+                    except Exception as e:
+                        st.error(f"❌ 推播失敗：{e}")
 
 
 # ==========================================
