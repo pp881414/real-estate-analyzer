@@ -11,18 +11,14 @@ daily_alert.py — 每日 CP 值房源警報（改善版）
 import requests
 import io
 import sys
-if hasattr(sys.stdout, 'buffer') and not isinstance(sys.stdout, io.StringIO):
-    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
 sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8", errors="replace")
 import pandas as pd
 import re
 import os
 import time
 import json
-import urllib3
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 from datetime import datetime
-from zoneinfo import ZoneInfo
 
 # ── 自動載入 .env（若存在）──
 _env_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '.env')
@@ -106,7 +102,7 @@ def build_session(region_id: int, section_id: int):
         "device":          "pc",
     }
     try:
-        r = s.get(base_url, headers=headers, timeout=15, verify=False)
+        r = s.get(base_url, headers=headers, timeout=15)
         soup = BeautifulSoup(r.text, "html.parser")
         meta = soup.find("meta", {"name": "csrf-token"})
         if meta:
@@ -135,7 +131,7 @@ def fetch_listings(district_name: str, section_id: int, region_id: int) -> pd.Da
         )
         try:
             time.sleep(DELAY_SEC)
-            res = s.get(api_url, headers=headers, timeout=15, verify=False)
+            res = s.get(api_url, headers=headers, timeout=15)
             if res.status_code != 200:
                 print(f"    ⚠️ 第 {page+1} 頁 HTTP {res.status_code}，停止")
                 break
@@ -356,7 +352,7 @@ def send_line(message: str) -> bool:
 
 
 def format_line_message(cp_df: pd.DataFrame, district_name: str, threshold) -> str:
-    now = datetime.now(tz=ZoneInfo('Asia/Taipei')).strftime("%m/%d %H:%M")
+    now = datetime.now().strftime("%m/%d %H:%M")
     t_low, t_high = (
         (threshold[0], threshold[1])
         if isinstance(threshold, (list, tuple))
@@ -453,7 +449,7 @@ def main():
             print("[ERR] LINE 通知發送失敗")
 
     # ── 改善4：發送整體執行摘要（只有一則） ──
-    now = datetime.now(tz=ZoneInfo('Asia/Taipei')).strftime("%m/%d %H:%M")
+    now = datetime.now().strftime("%m/%d %H:%M")
     t_low, t_high = (
         (threshold[0], threshold[1])
         if isinstance(threshold, (list, tuple))
@@ -474,11 +470,8 @@ def main():
     print(f"\n{'='*55}")
     print(f"[OK] 完成！共通知 {total_sent} 筆 CP 值物件")
     print(f"{'='*55}")
-
-def run_alert_and_return() -> str:
-    import sys, io
-    sys.stdout = io.StringIO()
-    cfg         = load_config()
+def run_alert_and_return(cfg_override: dict = None) -> str:
+    cfg         = cfg_override or load_config()
     districts   = cfg.get("districts",  ["板橋區"])
     threshold   = cfg.get("threshold",  [-20, -10])
     max_alerts  = cfg.get("max_alerts", 10)
@@ -490,9 +483,9 @@ def run_alert_and_return() -> str:
     if db is None:
         return "❌ 無法載入資料庫"
 
-    summary_hits   = []
-    summary_nohits = []
-    total_sent     = 0
+    summary_hits    = []
+    summary_nohits  = []
+    total_sent      = 0
     detail_messages = []
 
     for district_name in districts:
@@ -515,6 +508,7 @@ def run_alert_and_return() -> str:
         summary_hits.append(f"{district_name}（{len(cp_df)}筆）")
         detail_messages.append(format_line_message(cp_df, district_name, threshold))
 
+    from zoneinfo import ZoneInfo
     now = datetime.now(tz=ZoneInfo('Asia/Taipei')).strftime("%m/%d %H:%M")
     t_low, t_high = (
         (threshold[0], threshold[1])
@@ -530,8 +524,9 @@ def run_alert_and_return() -> str:
         lines.append(f"✅ 有物件：{'、'.join(summary_hits)}")
     if summary_nohits:
         lines.append(f"⭕ 無符合：{'、'.join(summary_nohits)}")
+
     all_messages = detail_messages + ["\n".join(lines)]
-    sys.stdout = sys.__stdout__
     return "\n\n".join(all_messages)
+
 if __name__ == "__main__":
     main()
