@@ -526,6 +526,5 @@ def run_alert_and_return() -> str:
     if summary_nohits:
         lines.append(f"⭕ 無符合：{'、'.join(summary_nohits)}")
     return "\n".join(lines)
-
 if __name__ == "__main__":
     main()
