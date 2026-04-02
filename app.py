@@ -783,11 +783,15 @@ with st.expander("🔔 每日 LINE 警報設定", expanded=False):
                                 cwd=current_dir
                             )
                             message = result.stdout.strip() if result.returncode == 0 else "❌ 執行失敗"
+                            if not message:
+                                message = "📊 房價掃描完成，請至網站查看結果！"
+		            st.write(f"debug: returncode={result.returncode}, message長度={len(message)}, stderr={result.stderr[:200]}")
                             resp = requests.post(
                                 f"{RENDER_URL}/push",
                                 json={"nickname": nickname.strip(), "message": message},
                                 timeout=60
                             )
+
                             if resp.status_code == 200:
                                 st.success(f"✅ 已成功推播給「{nickname.strip()}」！")
                             else:
