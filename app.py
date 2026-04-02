@@ -11,7 +11,8 @@ import os
 import sys
 import pickle
 import json
-
+import urllib3
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 st.set_page_config(page_title="智慧房價診斷系統", page_icon="🏠", layout="wide", initial_sidebar_state="collapsed")
 
 # ==========================================
@@ -167,7 +168,7 @@ def fetch_591_detail(url: str):
         "device": "pc",
     }
     try:
-        r = session.get("https://sale.591.com.tw/", headers=headers, timeout=10)
+        r = session.get("https://sale.591.com.tw/", headers=headers, timeout=10, verify=False)
         try:
             from bs4 import BeautifulSoup
             meta = BeautifulSoup(r.text, "html.parser").find("meta", {"name": "csrf-token"})
@@ -179,7 +180,7 @@ def fetch_591_detail(url: str):
         pass
 
     try:
-        res = session.get(f"https://bff-house.591.com.tw/v1/web/sale/detail?id={house_id}", headers=headers, timeout=12)
+        res = session.get(f"https://bff-house.591.com.tw/v1/web/sale/detail?id={house_id}", headers=headers, timeout=12, verify=False)   res = session.get(f"https://bff-house.591.com.tw/v1/web/sale/detail?id={house_id}", headers=headers, timeout=12)
         if res.status_code != 200:
             return None, f"API 錯誤 {res.status_code}"
         raw = res.json()
