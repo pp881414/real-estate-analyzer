@@ -1,3 +1,4 @@
+[![Demo](https://img.shields.io/badge/🚀%20Live%20Demo-house--diagnosis.streamlit.app-ff4b4b?style=for-the-badge)](https://house-diagnosis.streamlit.app/)
 # 🏠 智慧房價診斷系統 — 使用說明
 
 ## 📁 檔案結構
