@@ -474,6 +474,58 @@ def main():
     print(f"[OK] 完成！共通知 {total_sent} 筆 CP 值物件")
     print(f"{'='*55}")
 
+def run_alert_and_return() -> str:
+    cfg         = load_config()
+    districts   = cfg.get("districts",  ["板橋區"])
+    threshold   = cfg.get("threshold",  [-20, -10])
+    max_alerts  = cfg.get("max_alerts", 10)
+    house_types = cfg.get("house_types", ["大樓"])
+    region_name = cfg.get("region", DEFAULT_REGION)
+    region_id   = REGION_MAP.get(region_name, 3)
+
+    db = load_market_db()
+    if db is None:
+        return "❌ 無法載入資料庫"
+
+    summary_hits   = []
+    summary_nohits = []
+    total_sent     = 0
+
+    for district_name in districts:
+        section_id = DISTRICT_MAP.get(district_name)
+        if section_id is None:
+            continue
+        listings = fetch_listings(district_name, section_id, region_id)
+        if listings.empty:
+            summary_nohits.append(f"{district_name}（爬蟲失敗）")
+            continue
+        listings = listings[listings["型態"].isin(house_types)]
+        if listings.empty:
+            summary_nohits.append(f"{district_name}（無符合類型）")
+            continue
+        cp_df = find_cp_listings(listings, db, threshold, max_alerts)
+        if cp_df.empty:
+            summary_nohits.append(district_name)
+            continue
+        total_sent += len(cp_df)
+        summary_hits.append(f"{district_name}（{len(cp_df)}筆）")
+
+    now = datetime.now(tz=ZoneInfo('Asia/Taipei')).strftime("%m/%d %H:%M")
+    t_low, t_high = (
+        (threshold[0], threshold[1])
+        if isinstance(threshold, (list, tuple))
+        else (threshold, 0)
+    )
+    lines = [
+        f"📊【執行摘要】{now}",
+        f"縣市：{region_name}　門檻：{t_low}%～{t_high}%",
+        f"共通知 {total_sent} 筆 CP 值物件",
+    ]
+    if summary_hits:
+        lines.append(f"✅ 有物件：{'、'.join(summary_hits)}")
+    if summary_nohits:
+        lines.append(f"⭕ 無符合：{'、'.join(summary_nohits)}")
+    return "\n".join(lines)
 
 if __name__ == "__main__":
     main()
