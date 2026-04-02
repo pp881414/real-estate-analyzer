@@ -180,7 +180,7 @@ def fetch_591_detail(url: str):
         pass
 
     try:
-        res = session.get(f"https://bff-house.591.com.tw/v1/web/sale/detail?id={house_id}", headers=headers, timeout=12, verify=False)   res = session.get(f"https://bff-house.591.com.tw/v1/web/sale/detail?id={house_id}", headers=headers, timeout=12)
+        res = session.get(f"https://bff-house.591.com.tw/v1/web/sale/detail?id={house_id}", headers=headers, timeout=12, verify=False)
         if res.status_code != 200:
             return None, f"API 錯誤 {res.status_code}"
         raw = res.json()
