@@ -717,13 +717,12 @@ st.markdown("<hr class='divider'>", unsafe_allow_html=True)
 with st.expander("🔔 每日 LINE 警報設定", expanded=False):
     col_qr, col_hint = st.columns([1, 3])
     with col_qr:
-        st.image("https://qr-official.line.me/sid/L/761zjrzc.png", width=100)
+            st.image("https://qr-official.line.me/sid/L/761zjrzc.png", width=130)
+            nickname = st.text_input("輸入你的暱稱", placeholder="請輸入綁定時設定的暱稱")
     with col_hint:
-        st.markdown("#### 📲 如何接收推播？")
-        st.markdown("1. 掃左方 QR Code 加入官方帳號\n2. 輸入暱稱完成綁定\n3. 在下方輸入暱稱按「推播給我」")
+            st.markdown("#### 📲 如何接收推播？")
+            st.markdown("1. 掃左方 QR Code 加入官方帳號\n2. 輸入暱稱完成綁定\n3. 在下方輸入暱稱按「推播給我」")
     st.divider()
-    cfg = load_alert_config()
-    col_s1, col_s2 = st.columns(2)
     with col_s1:
         sel_districts = st.multiselect("監控行政區（可多選）", options=list(DISTRICT_OPTIONS.keys()),
                                        default=cfg.get("districts", ["板橋區"]), key="alert_districts")
@@ -760,7 +759,6 @@ with st.expander("🔔 每日 LINE 警報設定", expanded=False):
 
     with col_push:
         RENDER_URL = "https://real-estate-analyzer-72i6.onrender.com"
-        nickname = st.text_input("輸入你的暱稱", placeholder="請輸入綁定時設定的暱稱")
         if st.button("📲  推播給我", key="btn_push_line", use_container_width=True, type="primary"):
             if not nickname.strip():
                 st.warning("請輸入暱稱")
