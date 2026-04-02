@@ -7,3 +7,4 @@ streamlit>=1.32
 plotly>=5.18
 matplotlib>=3.7
 gunicorn
+flask
