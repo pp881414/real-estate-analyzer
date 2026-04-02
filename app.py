@@ -752,10 +752,13 @@ with st.expander("🔔 每日 LINE 警報設定", expanded=False):
                 st.success("✅ 設定已儲存！")
 
     with col_push:
-        st.info("📲 掃描下方 QR Code 加入官方帳號，即可接收推播通知！")
+        st.image("https://qr-official.line.me/sid/L/761zjrzc.png", width=160, caption="掃碼加入官方帳號")
         RENDER_URL = "https://real-estate-analyzer-72i6.onrender.com"
-        if st.button("📲  立即推播給所有訂閱者", key="btn_push_line", use_container_width=True, type="primary"):
-            if not sel_districts:
+        nickname = st.text_input("輸入你的暱稱", placeholder="請輸入綁定時設定的暱稱")
+        if st.button("📲  推播給我", key="btn_push_line", use_container_width=True, type="primary"):
+            if not nickname.strip():
+                st.warning("請輸入暱稱")
+            elif not sel_districts:
                 st.warning("請至少選一個行政區")
             elif not sel_types:
                 st.warning("請至少選一種房屋類型")
@@ -763,19 +766,24 @@ with st.expander("🔔 每日 LINE 警報設定", expanded=False):
                 save_alert_config(build_cfg())
                 with st.spinner("🔍 搜尋並推播中，請稍候..."):
                     try:
-                        import daily_alert
-                        results = daily_alert.run_alert_and_return()
-                        message = results if isinstance(results, str) else "📊 已完成房價掃描！"
-                        resp = requests.post(
-                            f"{RENDER_URL}/broadcast",
-                            json={"message": message},
-                            timeout=30
-                        )
-                        data = resp.json()
-                        st.success(f"✅ 已成功推播給 {data.get('sent', 0)} 位訂閱者！")
+                        # 確認暱稱是否存在
+                        check = requests.get(f"{RENDER_URL}/check/{nickname.strip()}", timeout=10)
+                        if check.json().get("exists"):
+                            import daily_alert
+                            message = daily_alert.run_alert_and_return()
+                            resp = requests.post(
+                                f"{RENDER_URL}/push",
+                                json={"nickname": nickname.strip(), "message": message},
+                                timeout=60
+                            )
+                            if resp.status_code == 200:
+                                st.success(f"✅ 已成功推播給「{nickname.strip()}」！")
+                            else:
+                                st.error("❌ 推播失敗，請稍後再試")
+                        else:
+                            st.error("❌ 找不到此暱稱，請確認是否已加入官方帳號並完成綁定")
                     except Exception as e:
                         st.error(f"❌ 推播失敗：{e}")
-
 
 # ==========================================
 # Footer
