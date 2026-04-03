@@ -473,6 +473,9 @@ def main():
     print(f"[OK] 完成！共通知 {total_sent} 筆 CP 值物件")
     print(f"{'='*55}")
 def run_alert_and_return(cfg_override: dict = None) -> str:
+    import io, sys
+    _old_stdout = sys.stdout
+    sys.stdout = io.StringIO()
     cfg         = cfg_override or load_config()
     districts   = cfg.get("districts",  ["板橋區"])
     threshold   = cfg.get("threshold",  [-20, -10])
@@ -483,6 +486,7 @@ def run_alert_and_return(cfg_override: dict = None) -> str:
 
     db = load_market_db()
     if db is None:
+        sys.stdout = _old_stdout
         return "❌ 無法載入資料庫"
 
     summary_hits    = []
@@ -527,6 +531,7 @@ def run_alert_and_return(cfg_override: dict = None) -> str:
     if summary_nohits:
         lines.append(f"⭕ 無符合：{'、'.join(summary_nohits)}")
 
+    sys.stdout = _old_stdout
     all_messages = detail_messages + ["\n".join(lines)]
     return "\n\n".join(all_messages)
 
