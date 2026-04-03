@@ -721,7 +721,7 @@ with st.expander("🔔 每日 LINE 警報設定", expanded=False):
             nickname = st.text_input("輸入你的暱稱", placeholder="請輸入綁定時設定的暱稱")
     with col_hint:
             st.markdown("#### 📲 如何接收推播？")
-            st.markdown("1. 掃左方 QR Code 加入官方帳號\n2. 輸入暱稱完成綁定\n3. 在下方輸入暱稱按「推播給我」\n4. Line好友輸入@761zjrzc\n*. 按下「推播給我」後到收到訊息需要2-5分鐘，搜尋需時間請見諒🙇")
+            st.markdown("1. 掃左方 QR Code 加入官方帳號\n2. 輸入暱稱完成綁定\n3. 在下方輸入暱稱按「推播給我」\n4. Line好友輸入@761zjrzc\n注意. 按下「推播給我」後到收到訊息需要2-5分鐘，搜尋需時間請見諒🙇")
     st.divider()
     cfg = load_alert_config()
     col_s1, col_s2 = st.columns(2)
