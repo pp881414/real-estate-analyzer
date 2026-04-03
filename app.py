@@ -746,6 +746,7 @@ with st.expander("🔔 每日 LINE 警報設定", expanded=False):
             "threshold": [int(sel_threshold[0]), int(sel_threshold[1])],
             "max_alerts": int(sel_max),
             "house_types": sel_types,
+            "region": "新北市",
         }
 
     col_save, col_push = st.columns(2)
