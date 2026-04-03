@@ -473,6 +473,8 @@ def main():
     print(f"[OK] 完成！共通知 {total_sent} 筆 CP 值物件")
     print(f"{'='*55}")
 def run_alert_and_return(cfg_override: dict = None) -> str:
+    import io
+    sys.stdout = io.StringIO()
     cfg         = cfg_override or load_config()
     districts   = cfg.get("districts",  ["板橋區"])
     threshold   = cfg.get("threshold",  [-20, -10])
