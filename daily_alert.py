@@ -361,7 +361,7 @@ def format_line_message(cp_df: pd.DataFrame, district_name: str, threshold) -> s
         else (threshold, 0)
     )
     lines = [
-        f"\n🏠【{district_name} CP值警報】{now}",
+        f"\n🏠【{district_name} CP值警報】",
         f"門檻：行情偏離 {t_low}%～{t_high}%，共 {len(cp_df)} 筆\n",
     ]
     for i, (_, row) in enumerate(cp_df.iterrows(), 1):
