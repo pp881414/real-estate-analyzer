@@ -776,9 +776,10 @@ with st.expander("🔔 每日 LINE 警報設定", expanded=False):
                         check = requests.get(f"{RENDER_URL}/check/{nickname.strip()}", timeout=120)
                         if check.json().get("exists"):
                             import subprocess, json
+                            cfg_json = json.dumps(build_cfg(), ensure_ascii=False)
                             result = subprocess.run(
                                 [sys.executable, "-c",
-                                "import daily_alert; print(daily_alert.run_alert_and_return())"],
+                                f"import daily_alert; print(daily_alert.run_alert_and_return({repr(cfg_json)}))"],
                                 capture_output=True, text=True, timeout=120,
                                 cwd=current_dir
                             )
