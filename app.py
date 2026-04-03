@@ -773,7 +773,7 @@ with st.expander("🔔 每日 LINE 警報設定", expanded=False):
                 with st.spinner("🔍 搜尋並推播中，請稍候..."):
                     try:
                         # 確認暱稱是否存在
-                        check = requests.get(f"{RENDER_URL}/check/{nickname.strip()}", timeout=10)
+                        check = requests.get(f"{RENDER_URL}/check/{nickname.strip()}", timeout=120)
                         if check.json().get("exists"):
                             import subprocess, json
                             result = subprocess.run(
@@ -789,7 +789,7 @@ with st.expander("🔔 每日 LINE 警報設定", expanded=False):
                             resp = requests.post(
                                 f"{RENDER_URL}/push",
                                 json={"nickname": nickname.strip(), "message": message},
-                                timeout=60
+                                timeout=120
                             )
 
                             if resp.status_code == 200:
