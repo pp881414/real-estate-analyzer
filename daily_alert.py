@@ -18,6 +18,8 @@ import re
 import os
 import time
 import json
+import urllib3
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 from datetime import datetime
 
 # ── 自動載入 .env（若存在）──
@@ -102,7 +104,7 @@ def build_session(region_id: int, section_id: int):
         "device":          "pc",
     }
     try:
-        r = s.get(base_url, headers=headers, timeout=15)
+        r = s.get(base_url, headers=headers, timeout=15, verify=False)
         soup = BeautifulSoup(r.text, "html.parser")
         meta = soup.find("meta", {"name": "csrf-token"})
         if meta:
@@ -131,7 +133,7 @@ def fetch_listings(district_name: str, section_id: int, region_id: int) -> pd.Da
         )
         try:
             time.sleep(DELAY_SEC)
-            res = s.get(api_url, headers=headers, timeout=15)
+            res = s.get(api_url, headers=headers, timeout=15, verify=False)
             if res.status_code != 200:
                 print(f"    ⚠️ 第 {page+1} 頁 HTTP {res.status_code}，停止")
                 break
