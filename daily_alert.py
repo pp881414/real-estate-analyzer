@@ -150,6 +150,10 @@ def fetch_listings(district_name: str, section_id: int, region_id: int) -> pd.Da
 
             before = len(results)
             for h in house_list:
+                # 過濾 591 自動補推薦的其他區物件
+                raw_section = str(h.get("section_name") or "")
+                if raw_section and district_name not in raw_section:
+                    continue
                 parsed = parse_house(h, district_name)
                 if parsed:
                     results.append(parsed)
