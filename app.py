@@ -767,9 +767,9 @@ with st.expander("🔔 每日 LINE 警報設定", expanded=False):
         if st.button("📲  推播給我", key="btn_push_line", use_container_width=True, type="primary"):
             if not nickname.strip():
                 st.warning("請輸入暱稱")
-            elif not sel_districts:
+            elif not sel_district:
                 st.warning("請至少選一個行政區")
-            elif not sel_types:
+            elif not sel_type:
                 st.warning("請至少選一種房屋類型")
             else:
                 save_alert_config(build_cfg())
