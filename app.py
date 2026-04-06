@@ -727,10 +727,11 @@ with st.expander("🔔 每日 LINE 警報設定", expanded=False):
     col_s1, col_s2 = st.columns(2)
     with col_s1:
         sel_district = st.selectbox("監控行政區", options=list(DISTRICT_OPTIONS.keys()),
-                                       index=list(DISTRICT_OPTIONS.keys()).index(cfg.get("districts", ["板橋區"])[0]),
-        sel_types = st.multiselect("房屋類型", options=["大樓", "公寓", "透天厝"],
-                                   index=["大樓", "公寓", "透天厝"].index(cfg.get("house_types", ["大樓"])[0]),
-                                   key="alert_types")
+                                    index=list(DISTRICT_OPTIONS.keys()).index(cfg.get("districts", ["板橋區"])[0]),
+                                    key="alert_districts")
+        sel_type = st.selectbox("房屋類型", options=["大樓", "公寓", "透天厝"],
+                                index=["大樓", "公寓", "透天厝"].index(cfg.get("house_types", ["大樓"])[0]),
+                                key="alert_types")
     with col_s2:
         threshold_default = cfg.get("threshold", [-20, -10])
         if isinstance(threshold_default, int):
