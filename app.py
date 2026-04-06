@@ -726,10 +726,11 @@ with st.expander("🔔 每日 LINE 警報設定", expanded=False):
     cfg = load_alert_config()
     col_s1, col_s2 = st.columns(2)
     with col_s1:
-        sel_districts = st.multiselect("監控行政區（可多選）", options=list(DISTRICT_OPTIONS.keys()),
-                                       default=cfg.get("districts", ["板橋區"]), key="alert_districts")
+        sel_district = st.selectbox("監控行政區", options=list(DISTRICT_OPTIONS.keys()),
+                                       index=list(DISTRICT_OPTIONS.keys()).index(cfg.get("districts", ["板橋區"])[0]),
         sel_types = st.multiselect("房屋類型", options=["大樓", "公寓", "透天厝"],
-                                   default=cfg.get("house_types", ["大樓"]), key="alert_types")
+                                   index=["大樓", "公寓", "透天厝"].index(cfg.get("house_types", ["大樓"])[0]),
+                                   key="alert_types")
     with col_s2:
         threshold_default = cfg.get("threshold", [-20, -10])
         if isinstance(threshold_default, int):
@@ -742,10 +743,10 @@ with st.expander("🔔 每日 LINE 警報設定", expanded=False):
 
     def build_cfg():
         return {
-            "districts": sel_districts,
+            "districts": [sel_district],
             "threshold": [int(sel_threshold[0]), int(sel_threshold[1])],
             "max_alerts": int(sel_max),
-            "house_types": sel_types,
+            "house_types": [sel_type],
             "region": "新北市",
         }
 
