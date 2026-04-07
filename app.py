@@ -150,11 +150,11 @@ def parse_address(addr_raw: str):
 
 
 def is_valid_591_url(url: str) -> bool:
-    return bool(re.search(r'sale\.591\.com\.tw.*?/detail/2/\d+', url))
+    return bool(re.search(r'(sale\.591\.com\.tw.*?/detail/2/\d+|m\.591\.com\.tw/v2/sale/\d+)', url))
 
 
 def fetch_591_detail(url: str):
-    m = re.search(r'/detail/2/(\d+)', url)
+    m = re.search(r'(?:/detail/2/|/v2/sale/)(\d+)', url)
     if not m:
         return None, "無法識別網址格式"
     house_id = m.group(1)
