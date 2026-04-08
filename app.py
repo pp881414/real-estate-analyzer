@@ -279,7 +279,7 @@ def get_ai_advice(diff, addr, age, floor, target_type, my_unit, final_p, count, 
     try:
         res = requests.post(
             f"https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key={api_key}",
-            json={"contents": [{"parts": [{"text": prompt}]}]}, timeout=60
+            json={"contents": [{"parts": [{"text": prompt}]}]}, timeout=100
         )
         if res.status_code == 200:
             return res.json()['candidates'][0]['content']['parts'][0]['text'], None
